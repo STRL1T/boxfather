@@ -1,4 +1,4 @@
-# Boxfather — конструктор упаковки
+# Сборщик коробочек (Box Builder) — конструктор упаковки
 
 Веб-инструмент для дизайнеров упаковки. Типы коробок:
 
@@ -27,9 +27,9 @@
 
 ## Публикация на GitHub Pages
 
-1. Создайте репозиторий (`boxfather`) и загрузите в него все файлы из этой папки (Add file → Upload files).
+1. Создайте репозиторий (`box-builder`) и загрузите в него все файлы из этой папки (Add file → Upload files).
 2. Settings → Pages → Source: *Deploy from a branch*, ветка `main`, папка `/ (root)` → Save.
-3. Через 1–2 минуты сайт будет доступен по адресу `https://<ваш-логин>.github.io/boxfather/`.
+3. Через 1–2 минуты сайт будет доступен по адресу `https://design-dmitriev.github.io/box-builder/`.
 
 Всё работает без сервера и сборки: библиотеки лежат в `vendor/` (three.js, clipper, jsPDF, svg2pdf.js, pdf.js).
 
