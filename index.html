@@ -7,121 +7,216 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap">
 <style>
-  /* Палитра и типографика — та же Swiss-минимализм-система, что и на
-     design-dmitriev.github.io: строгий Ч/Б, без цветных акцентов,
-     Onest, пилюли-кнопки, скругления как у SectionLabel/ArrowButton
-     основного сайта. См. DESIGN.md в этом репозитории. */
+  /* Швейцарский минимализм в духе design-dmitriev.github.io: белый лист,
+     чёрный шрифт Onest, волосяные линии, нумерованные разделы, одно
+     главное действие на экран. Подробности — DESIGN.md. */
   :root {
-    color-scheme: dark;
-    --bg: #0a0a0a;
-    --panel: #0e0e0e;
-    --field: #161616;
-    --line: rgba(255,255,255,.14);
-    --line-soft: rgba(255,255,255,.08);
-    --text: #ffffff;
-    --muted: rgba(255,255,255,.6);
-    --accent: #ffffff;
-    --accent-ink: #0a0a0a;
-    --ok: #ffffff;
-    --err: #ff6b6b;
+    color-scheme: light;
+    --bg: #ffffff;
+    --ink: #0a0a0a;
+    --muted: #6b6b6b;
+    --line: #e5e5e5;
+    --field: #f4f4f4;
+    --stage: #e9e6e1;
+    --err: #d92d20;
+    --side: 400px;
   }
-  html, body { height: 100%; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 14px/1.45 "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
-    display: flex; flex-direction: column; overflow: hidden;
+    background: var(--bg); color: var(--ink);
+    font: 15px/1.45 "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
   }
+  [hidden] { display: none !important; }
+
+  /* ---------- раскладка ---------- */
+  .app { display: flex; flex-direction: column; min-height: 100dvh; }
   header {
-    display: flex; align-items: baseline; justify-content: space-between; gap: 6px 12px; flex-wrap: wrap;
-    padding: calc(14px + env(safe-area-inset-top, 0px)) 20px 10px;
-    border-bottom: 1px solid var(--line-soft);
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 20px 14px;
+    border-bottom: 1px solid var(--line);
   }
-  h1 { margin: 0; font-size: 16px; font-weight: 500; letter-spacing: -0.01em; }
-  header p { margin: 0; color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
-  #stage { position: relative; flex: 1; min-height: 180px; }
+  h1 { margin: 0; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
+  #h-size { color: var(--muted); font-variant-numeric: tabular-nums; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  #stage { position: relative; height: 58svh; min-height: 320px; background: var(--stage); overflow: hidden; }
   #stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-  .hint { position: absolute; right: 16px; top: 8px; color: var(--muted); font-size: 12px; pointer-events: none; }
-  #stage.drag::after { content: "Отпустите файл макета"; position: absolute; inset: 12px; border: 2px dashed var(--text); border-radius: 4px;
-        display: grid; place-items: center; color: #111; font-weight: 500; background: rgba(255,255,255,.4); pointer-events: none; }
-  .panel { background: var(--panel); border-top: 1px solid var(--line-soft); padding: 14px 20px 16px; display: grid; gap: 12px; max-height: 58vh; overflow-y: auto; }
-  .row { display: flex; gap: 8px 14px; flex-wrap: wrap; align-items: center; }
-  .row + .row { border-top: 1px solid var(--line-soft); padding-top: 12px; }
-  .play { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; align-items: center; }
-  .lbl { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; min-width: 88px; }
-  button {
-    font: inherit; font-weight: 500; color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 999px;
-    padding: 9px 18px; cursor: pointer; min-height: 40px; transition: opacity .2s ease;
+  #stage.drag::after {
+    content: "Отпустите файл макета"; position: absolute; inset: 12px; border: 1.5px dashed var(--ink); border-radius: 12px;
+    display: grid; place-items: center; font-weight: 500; background: rgba(255,255,255,.6); pointer-events: none; z-index: 5;
   }
-  button:hover { opacity: .85; }
-  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); font-size: 13px; opacity: 1; }
-  button.ghost:hover { border-color: var(--text); opacity: 1; }
-  button:disabled { opacity: .35; cursor: default; }
-  button:focus-visible, input:focus-visible, .up:focus-within { outline: 2px solid var(--text); outline-offset: 2px; }
+  .hint { display: none; }
+
+  @media (min-width: 900px) {
+    body { height: 100dvh; overflow: hidden; }
+    .app {
+      display: grid; height: 100dvh; min-height: 0;
+      grid-template-columns: minmax(0, 1fr) var(--side); grid-template-rows: auto minmax(0, 1fr);
+    }
+    header { grid-column: 1 / -1; padding: 16px 28px; }
+    #stage { height: auto; min-height: 0; }
+    .panel { border-left: 1px solid var(--line); overflow-y: auto; overscroll-behavior: contain; }
+    .hint { display: block; position: absolute; right: 20px; top: 18px; color: var(--muted); font-size: 12px; pointer-events: none; }
+  }
+
+  /* ---------- управление вскрытием: поверх сцены ---------- */
+  .play {
+    position: absolute; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 3;
+    display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 16px;
+    padding: 10px 18px 10px 10px; border: 1px solid var(--line); border-radius: 999px;
+    background: rgba(255,255,255,.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  @media (min-width: 900px) { .play { left: 50%; right: auto; width: min(640px, calc(100% - 40px)); transform: translateX(-50%); } }
   #play { min-width: 112px; }
-  .track { display: grid; gap: 3px; }
-  input[type=range] { width: 100%; accent-color: var(--text); }
-  .steps { display: grid; grid-template-columns: repeat(4, 1fr); font-size: 11.5px; color: var(--muted); }
+  .track { display: grid; gap: 4px; }
+  input[type=range] { width: 100%; margin: 0; accent-color: var(--ink); height: 20px; }
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; font-size: 11px; line-height: 1.25; color: var(--muted); }
   .steps span:nth-child(2), .steps span:nth-child(3) { text-align: center; }
   .steps span:last-child { text-align: right; }
-  .steps span.on { color: var(--text); }
-  [hidden] { display: none !important; }
-  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 3px; flex-wrap: wrap; }
-  .seg button { background: transparent; color: var(--muted); font-size: 13px; padding: 7px 14px; min-height: 36px; }
-  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
-  .chk { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; color: var(--muted); font-size: 13px; min-height: 36px; }
-  .chk input { accent-color: var(--text); width: 16px; height: 16px; margin: 0; }
-  .num { display: inline-flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-  .num input {
-    width: 78px; font: inherit; font-size: 14px; color: var(--text); background: var(--field); border: 1px solid var(--line);
-    border-radius: 6px; padding: 8px 9px; font-variant-numeric: tabular-nums; min-height: 38px; box-sizing: border-box;
+  .steps span.on { color: var(--ink); font-weight: 500; }
+
+  .fs-btn {
+    position: absolute; left: 16px; top: calc(16px + env(safe-area-inset-top, 0px)); z-index: 4;
+    display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px 0 14px;
+    background: rgba(255,255,255,.88); color: var(--ink); border: 1px solid var(--line); border-radius: 999px;
+    font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   }
-  .num input.bad { border-color: var(--err); }
-  .derived { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; flex-basis: 100%; }
-  .up { position: relative; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500;
-        color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; cursor: pointer; min-height: 40px; }
-  .up:hover { border-color: var(--text); }
-  .up input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
-  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
-  .up.done .dot { background: var(--ok); }
-  #status { color: var(--muted); font-size: 12px; min-height: 1.2em; flex-basis: 100%; }
-  #status.err { color: var(--err); }
-  .fs-btn { position: absolute; left: 12px; top: calc(12px + env(safe-area-inset-top, 0px)); z-index: 3; display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(10,10,10,.8); color: var(--text); border: 1px solid var(--line); border-radius: 999px;
-    padding: 9px 15px; font-size: 13px; min-height: 40px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-  .fs-btn svg { width: 15px; height: 15px; }
+  .fs-btn:hover { border-color: var(--ink); }
+  .fs-btn svg { width: 16px; height: 16px; }
   .fs-exit { display: none; }
-  body.full header { display: none; }
-  body.full #stage { position: fixed; inset: 0; z-index: 10; height: 100dvh; min-height: 0; }
-  body.full .hint { display: none; }
-  body.full .fs-enter { display: none; }
-  body.full .fs-exit { display: inline-flex; }
-  body.full .panel { position: fixed; left: 0; right: 0; bottom: 0; z-index: 11; max-height: none; overflow: visible;
-    background: linear-gradient(to top, rgba(10,10,10,.94) 55%, rgba(10,10,10,0)); border-top: 0;
-    padding: 30px 16px calc(16px + env(safe-area-inset-bottom, 0px));
-    padding-left: calc(16px + env(safe-area-inset-left, 0px));
-    padding-right: calc(16px + env(safe-area-inset-right, 0px)); }
-  body.full .panel > :not(.play) { display: none; }
-  @media (max-width: 560px) {
-    #stage { min-height: 46vh; }
-    .play { grid-template-columns: 1fr; }
-    .hint { display: none; }
-    .lbl { min-width: 0; flex-basis: 100%; }
-    button, .up, .seg button { min-height: 44px; }
-    .num input { min-height: 42px; }
+
+  /* ---------- панель настроек ---------- */
+  .panel { counter-reset: sec; background: var(--bg); display: flex; flex-direction: column; }
+  .sec { padding: 22px 20px; border-bottom: 1px solid var(--line); display: grid; gap: 14px; }
+  @media (min-width: 900px) { .sec { padding: 24px 28px; } }
+  .sec-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .sec-h {
+    counter-increment: sec; margin: 0; display: flex; align-items: baseline; gap: 10px;
+    font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em;
   }
+  .sec-h::before { content: counter(sec, decimal-leading-zero); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* кнопки */
+  button { font: inherit; cursor: pointer; }
+  #play, #ex-pdf, #ex-svg {
+    min-height: 44px; padding: 0 22px; border-radius: 999px; border: 1px solid var(--ink);
+    background: var(--ink); color: #fff; font-weight: 500; transition: opacity .2s ease, background .2s ease, color .2s ease;
+  }
+  #play:hover, #ex-pdf:hover { opacity: .82; }
+  button.ghost { background: transparent !important; color: var(--ink) !important; }
+  button.ghost:hover { background: var(--ink) !important; color: #fff !important; opacity: 1; }
+  button:disabled { opacity: .35 !important; cursor: default; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .link {
+    background: none; border: 0; padding: 6px 0; color: var(--muted); font-size: 13px;
+    text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line);
+    justify-self: start; min-height: 32px; font-variant-numeric: tabular-nums;
+  }
+  .link:hover { color: var(--ink); text-decoration-color: var(--ink); }
+  #p-reset::before { content: "↺ Сбросить: "; }
+
+  /* тип коробки — вертикальный список, одно выбранное */
+  .seg { display: grid; gap: 6px; }
+  .seg button {
+    text-align: left; min-height: 48px; padding: 0 16px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-size: 15px;
+    display: flex; align-items: center; justify-content: space-between; transition: border-color .15s ease;
+  }
+  .seg button::after { content: ""; width: 16px; height: 16px; border-radius: 50%; border: 1px solid var(--line); flex: none; }
+  .seg button:hover { border-color: var(--ink); }
+  .seg button[aria-pressed="true"] { border-color: var(--ink); }
+  .seg button[aria-pressed="true"]::after { border: 5px solid var(--ink); }
+
+  /* размеры */
+  .fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 10px; }
+  .num { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
+  .num input {
+    width: 100%; min-height: 48px; padding: 0 12px; border-radius: 10px;
+    border: 1px solid transparent; background: var(--field); color: var(--ink);
+    font: inherit; font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; -moz-appearance: textfield;
+  }
+  .num input::-webkit-outer-spin-button, .num input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .num input:hover { border-color: var(--line); }
+  .num input:focus { border-color: var(--ink); background: var(--bg); outline: none; }
+  .num input.bad { border-color: var(--err); background: #fff5f4; }
+  .derived { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+
+  /* чекбоксы — строки на всю ширину */
+  .checks { display: grid; }
+  .chk {
+    display: flex; align-items: center; gap: 12px; min-height: 44px; cursor: pointer; font-size: 15px;
+    border-top: 1px solid var(--line);
+  }
+  .checks .chk:first-child { border-top: 0; }
+  .chk input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); flex: none; }
+
+  /* загрузка макета */
+  .up {
+    position: relative; display: flex; align-items: center; gap: 14px; padding: 16px 18px; cursor: pointer;
+    border: 1px dashed #c9c9c9; border-radius: 12px; transition: border-color .15s ease, background .15s ease;
+  }
+  .up:hover, .up:focus-within { border-color: var(--ink); background: var(--field); }
+  .up input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .up-t { display: grid; gap: 2px; }
+  .up-t b { font-weight: 500; }
+  .up-t small { color: var(--muted); font-size: 12.5px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
+  .up.done { border-style: solid; border-color: var(--ink); }
+  .up.done .dot { background: var(--ink); }
+
+  /* экспорт — всегда на виду внизу панели */
+  .export {
+    position: sticky; bottom: 0; z-index: 2; margin-top: auto; border-bottom: 0; border-top: 1px solid var(--line);
+    background: var(--bg); padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (max-width: 899px) { .export { position: static; } }
+  .ex-btns { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .export .chk { border-top: 0; min-height: 36px; font-size: 14px; }
+  #status { margin: 0; color: var(--muted); font-size: 12.5px; min-height: 1.2em; }
+  #status:empty { display: none; }
+  #status.err { color: var(--err); }
+
+  /* ---------- телефон ---------- */
+  @media (max-width: 560px) {
+    header { padding-left: 16px; padding-right: 16px; }
+    .sec { padding: 20px 16px; }
+    .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .play { left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); gap: 12px; padding: 8px 14px 8px 8px; }
+    #play { min-width: 96px; padding: 0 16px; }
+    .steps { font-size: 10px; }
+    .steps span:nth-child(2), .steps span:nth-child(3) { display: none; }
+    .steps { grid-template-columns: 1fr 1fr; }
+    .fs-btn span { display: none; }
+    .fs-btn { width: 44px; min-height: 44px; padding: 0; justify-content: center; }
+  }
+
+  /* ---------- полноэкранный 3D ---------- */
+  body.full { overflow: hidden; }
+  body.full header, body.full .panel, body.full .hint, body.full .fs-enter { display: none; }
+  body.full #stage { position: fixed; inset: 0; z-index: 10; height: 100dvh; min-height: 0; }
+  body.full .fs-exit { display: inline-flex; }
+  body.full .fs-exit span { display: inline; }
+  body.full .fs-exit { width: auto; padding: 0 16px 0 14px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
 </head>
 <body>
+<div class="app">
 <header>
-  <h1>Сборщик коробочек <span id="h-size" style="color:var(--muted);font-weight:500"></span></h1>
+  <h1>Сборщик коробочек <span id="h-size"></span></h1>
   <p id="h-info"></p>
 </header>
+
 <div id="stage">
-  <button type="button" class="fs-btn fs-enter" id="fs-on" aria-label="Смотреть 3D на весь экран"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>На весь экран</button>
-  <button type="button" class="fs-btn fs-exit" id="fs-off" aria-label="Выйти из полноэкранного режима"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>Закрыть</button>
-  <span class="hint">Вращать: тянуть · Масштаб: колесо / щипок · Макет можно перетащить сюда</span></div>
-<div class="panel">
+  <button type="button" class="fs-btn fs-enter" id="fs-on" aria-label="Смотреть 3D на весь экран"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>На весь экран</span></button>
+  <button type="button" class="fs-btn fs-exit" id="fs-off" aria-label="Выйти из полноэкранного режима"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Закрыть</span></button>
+  <span class="hint">Тянуть — вращать · колесо / щипок — масштаб · макет можно перетащить сюда</span>
+
   <div class="play">
     <button id="play" type="button">Открыть</button>
     <div class="track">
@@ -129,47 +224,58 @@
       <div class="steps" id="steps"><span class="on">В коробке</span><span>Вытягиваем за вырезы</span><span>Коробка извлечена</span><span>Крышка снята</span></div>
     </div>
   </div>
+</div>
 
-  <div class="row">
-    <span class="lbl">Тип коробки</span>
-    <div class="seg" id="types">
+<aside class="panel">
+  <section class="sec">
+    <h2 class="sec-h">Тип коробки</h2>
+    <div class="seg" id="types" role="group" aria-label="Тип коробки">
       <button type="button" data-type="sleeve" aria-pressed="true">Футляр + крышка-дно</button>
       <button type="button" data-type="tuck" aria-pressed="false">С язычками (RTE)</button>
       <button type="button" data-type="tele" aria-pressed="false">Крышка-дно</button>
     </div>
-  </div>
+  </section>
 
-  <div class="row">
-    <span class="lbl">Размер</span>
-    <label class="num" id="f-W"><span>Ширина, мм</span><input id="p-W" type="number" step="0.5" min="30" max="250" inputmode="decimal"></label>
-    <label class="num" id="f-L"><span>Высота, мм</span><input id="p-L" type="number" step="0.5" min="30" max="320" inputmode="decimal"></label>
-    <label class="num" id="f-D"><span>Толщина, мм</span><input id="p-D" type="number" step="0.5" min="8" max="80" inputmode="decimal"></label>
-    <label class="num" id="f-nw"><span>Вырез ш., мм</span><input id="p-nw" type="number" step="0.5" min="0" max="80" inputmode="decimal"></label>
-    <label class="num" id="f-nh"><span>Вырез гл., мм</span><input id="p-nh" type="number" step="0.5" min="0" max="40" inputmode="decimal"></label>
-    <button class="ghost" id="p-reset" type="button">85 × 150 × 20</button>
-    <span class="derived" id="derived"></span>
-  </div>
+  <section class="sec">
+    <div class="sec-top">
+      <h2 class="sec-h">Размер</h2>
+      <button class="link" id="p-reset" type="button" title="Вернуть размеры по умолчанию">85 × 150 × 20</button>
+    </div>
+    <div class="fields">
+      <label class="num" id="f-W"><span>Ширина, мм</span><input id="p-W" type="number" step="0.5" min="30" max="250" inputmode="decimal"></label>
+      <label class="num" id="f-L"><span>Высота, мм</span><input id="p-L" type="number" step="0.5" min="30" max="320" inputmode="decimal"></label>
+      <label class="num" id="f-D"><span>Толщина, мм</span><input id="p-D" type="number" step="0.5" min="8" max="80" inputmode="decimal"></label>
+      <label class="num" id="f-nw"><span>Вырез ш., мм</span><input id="p-nw" type="number" step="0.5" min="0" max="80" inputmode="decimal"></label>
+      <label class="num" id="f-nh"><span>Вырез гл., мм</span><input id="p-nh" type="number" step="0.5" min="0" max="40" inputmode="decimal"></label>
+    </div>
+    <p class="derived" id="derived"></p>
+  </section>
 
-  <div class="row">
-    <span class="lbl">Вид</span>
-    <label class="chk" id="f-hanger"><input type="checkbox" id="hanger" checked> Европодвес</label>
-    <label class="chk"><input type="checkbox" id="blackboard"> Чёрный картон внутри</label>
-    <label class="chk" id="f-zones"><input type="checkbox" id="zones" checked> Зоны под стрелки</label>
-  </div>
+  <section class="sec">
+    <h2 class="sec-h">Вид</h2>
+    <div class="checks">
+      <label class="chk" id="f-hanger"><input type="checkbox" id="hanger" checked><span>Европодвес</span></label>
+      <label class="chk"><input type="checkbox" id="blackboard"><span>Чёрный картон внутри</span></label>
+      <label class="chk" id="f-zones"><input type="checkbox" id="zones" checked><span>Зоны под стрелки</span></label>
+    </div>
+  </section>
 
-  <div class="row">
-    <span class="lbl">Дизайн</span>
-    <label class="up" id="up-sheet"><span class="dot"></span>Загрузить макет<input type="file" accept=".pdf,.png,.jpg,.jpeg,.svg,.webp" id="file"></label>
-    <button class="ghost" id="reset" type="button">Убрать дизайн</button>
-  </div>
+  <section class="sec">
+    <h2 class="sec-h">Дизайн</h2>
+    <label class="up" id="up-sheet"><span class="dot"></span><span class="up-t"><b>Загрузить макет</b><small>PDF, PNG, JPG, SVG — или перетащите на коробку</small></span><input type="file" accept=".pdf,.png,.jpg,.jpeg,.svg,.webp" id="file"></label>
+    <button class="link" id="reset" type="button">Убрать дизайн</button>
+  </section>
 
-  <div class="row">
-    <span class="lbl">Развёртка</span>
-    <button id="ex-svg" type="button">Скачать SVG</button>
-    <button id="ex-pdf" type="button">Скачать PDF</button>
-    <label class="chk"><input type="checkbox" id="ex-design"> с текущим дизайном</label>
-    <span id="status"></span>
-  </div>
+  <section class="sec export">
+    <h2 class="sec-h">Развёртка</h2>
+    <div class="ex-btns">
+      <button id="ex-pdf" type="button">Скачать PDF</button>
+      <button class="ghost" id="ex-svg" type="button">SVG</button>
+    </div>
+    <label class="chk"><input type="checkbox" id="ex-design"><span>С текущим дизайном</span></label>
+    <p id="status" role="status"></p>
+  </section>
+</aside>
 </div>
 
 <script src="vendor/three.min.js"></script>
